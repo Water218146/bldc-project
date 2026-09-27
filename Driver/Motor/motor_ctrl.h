@@ -89,7 +89,7 @@
 
 #define MOTOR_OPERATION_IDLE							0				//电机空闲状态
 #define MOTOR_OPERATION_FAULT							1				//电机运行错误
-#define MOTOR_OPERATION_NORMAL						2				//电机运行正常
+#define MOTOR_OPERATION_NORMAL						2					//电机运行正常
 
 #define MOTOR_STOP									0									//电机运行状态：停止						
 #define MOTOR_START									1									//电机运行状态：启动
@@ -175,6 +175,6 @@ typedef struct{
 extern motor_ctrl_prama_t motor_ctrl_prama;
 
 void motor_ctrl_init(void);
-void motor_start(uint16_t start_pwm_duty,uint8_t motor_dir);
+int motor_start(uint16_t start_pwm_duty,uint8_t motor_dir);
 void motor_stop(void);
 #endif 

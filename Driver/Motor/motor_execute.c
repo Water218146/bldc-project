@@ -42,6 +42,7 @@ static uint8_t motor_direction = 0;				//电机方向
 		if(adc_voltage_val.v_bus > OVER_VOLTAGE_THRESHOLD_VALUE)
 		{
 			over_voltage_cnt++;//过压次数增加
+			under_voltage_cnt = 0;//欠压次数清零
 			if(over_voltage_cnt > OVER_VOLTAGE_MAX_CNT)//过压错误次数大于阈值
 			{
 				over_voltage_cnt = OVER_VOLTAGE_MAX_CNT;
@@ -52,6 +53,7 @@ static uint8_t motor_direction = 0;				//电机方向
 		else if(adc_voltage_val.v_bus < UNDER_VOLTAGE_THRESHOLD_VALUE)
 		{
 			under_voltage_cnt++;//欠压次数增加
+			over_voltage_cnt = 0;	//过压次数清零
 			if(under_voltage_cnt > UNDER_VOLTAGE_MAX_CNT)//欠压错误次数大于阈值
 			{
 				under_voltage_cnt = UNDER_VOLTAGE_MAX_CNT;
@@ -97,6 +99,7 @@ static void motor_over_temperature_check(void)
 	/* 100ms进行一次温度检测 */
 	if(n_tick - check_out >= CHECK_INTERVAL_TIME)
 	{
+		check_out = n_tick;		//更新时间戳
 		/* 温度大于阈值 */
 		if(adc_voltage_val.temperature > OVER_TEMPERTURE_THRESHOLD_VALUE)
 		{
@@ -124,6 +127,66 @@ static void motor_over_temperature_check(void)
 	}
 }
 
+/**
+  ******************************************************************************
+  * @brief  电机错误检测
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void motor_error_check(void)
+{
+	static uint16_t error_sign_last = 0xffff;
+	/* 调用电压错误检测函数 */
+	motor_over_vlotage_under_voltage_check();
+	/* 调用过温错误检测珊瑚 */
+	motor_over_temperature_check();
+
+	/* 错误状态发上变化时才进入判断 防止进行重复无效的判断 */
+	if(motor_ctrl_prama.error_type != error_sign_last)
+	{
+		error_sign_last = motor_ctrl_prama.error_type;//记录历史错误状态
+
+		/* 有错误 */
+		if(motor_ctrl_prama.error_type != 0)		
+		{
+			motor_ctrl_prama.error_sign = MOTOR_OPERATION_FAULT;//标记为错误状态
+
+			if(motor_ctrl_prama.motor_sta == MOTOR_START)
+			{
+				motor_stop();		//电机停止
+				key_st_sp_prama.down_cnt = 0;//保证下次能够直接按下按键启动
+			}
+			/* 打印具体错误信息 */
+			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_VOLTAGE_ERROR))
+			{	
+				my_printf(DEBUG_COM,"check over voltage error\r\n");//打印过压错误
+			}
+			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,UNDER_VOLTAGE_ERROR))
+			{	
+				my_printf(DEBUG_COM,"check under voltage error\r\n");//打印低压错误
+			}
+			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_TEMPERATURE_ERROR))
+			{	
+				my_printf(DEBUG_COM,"check over temperature error\r\n");//打印过温错误
+			}			
+		}
+		/* 状态从有错误变成了无错误 或 初级执行这个函数*/
+		else
+		{
+			/*如果电机处于运行状态*/
+			if(motor_ctrl_prama.motor_sta == MOTOR_START)
+			{
+				motor_ctrl_prama.error_sign = MOTOR_OPERATION_NORMAL;   //异常标记设置为normal
+			}
+			/*如果电机处于停机状态*/
+			else
+			{
+				motor_ctrl_prama.error_sign = MOTOR_OPERATION_IDLE;		//异常标记设置为idle
+			}
+			my_printf(DEBUG_COM,"check normal\r\n");
+		}
+	}
+}
 
 /**
   ******************************************************************************
@@ -252,6 +315,8 @@ void motor_execute_task(void)
 		my_printf(DEBUG_COM,"motor_speed:%d RPM\r\n",motor_ctrl_prama.calculate_speed);
 	}
 	#endif
+	/*===================执行错误检测函数==================*/
+	motor_error_check();	
 	/*===================电机运行状态机====================*/
 	switch(motor_execute_state_machine)
 	{
@@ -264,10 +329,13 @@ void motor_execute_task(void)
 		break;
 		/* 电机处于启动状态 */
 		case EXECUTE_MOTOR_START:
-			motor_start(MOTOR_START_MIN_DUTY,motor_ctrl_prama.motor_direction);		//执行一次强拖换向 触发霍尔中断
-			if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)	//检测到了错误
+			int ret = 0;
+			// motor_start(MOTOR_START_MIN_DUTY,motor_ctrl_prama.motor_direction);		//执行一次强拖换向 触发霍尔中断
+			ret = motor_start(MOTOR_START_MIN_DUTY,motor_ctrl_prama.motor_direction);//执行一次强拖换向，且进行启动时的安全检测
+			// if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)	//检测到了错误
+			if(ret == 0)//启动错误
 			{
-				motor_execute_state_machine = EXECUTE_IDLE;
+				motor_execute_state_machine = EXECUTE_MOTOR_STOP;
 				key_st_sp_prama.down_cnt = 0;//按键清零 让再次按下启动按键时 能直接进行启动
 				my_printf(DEBUG_COM,"motor_start:flaut!!\r\n");
 			}
