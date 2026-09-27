@@ -554,6 +554,31 @@
               <FileType>1</FileType>
               <FilePath>..\Source\Bsp\bsp_adc_cb.c</FilePath>
             </File>
+            <File>
+              <FileName>bsp_hall.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\Bsp\bsp_hall.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_hall_cb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\Bsp\bsp_hall_cb.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_io.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\Bsp\bsp_io.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\Bsp\bsp_timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_timer_cb.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Source\Bsp\bsp_timer_cb.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -578,6 +603,36 @@
               <FileName>motor_sensorless.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Driver\Motor\motor_sensorless.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_sensor.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\Motor\motor_sensor.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_define.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>..\Driver\Motor\motor_define.h</FilePath>
+            </File>
+            <File>
+              <FileName>motor_phase_tab.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\Motor\motor_phase_tab.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_open_loop.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\Motor\motor_open_loop.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_ctrl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\Motor\motor_ctrl.c</FilePath>
+            </File>
+            <File>
+              <FileName>motor_execute.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\Motor\motor_execute.c</FilePath>
             </File>
           </Files>
         </Group>

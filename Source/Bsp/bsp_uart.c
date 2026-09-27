@@ -299,10 +299,7 @@ void my_printf(uart_com_e com, const char *format, ...)
 /* 串口task */
 void debug_uart_task(void)
 {
-	if (debug_com_index == 0)
-	{
-		return;
-	}
+	if (debug_com_index == 0)	return;
 	if (n_tick - debug_com_tick >= DEBUG_TIMOUT_MS)
 	{
 		debug_com_tick = n_tick;//更新时间戳

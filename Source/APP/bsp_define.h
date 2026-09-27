@@ -20,7 +20,11 @@
 #include "bsp_adc.h"
 #include "bsp_dac.h"
 #include "bsp_adc_cb.h"
-
+#include "bsp_hall.h"
+#include "bsp_hall_cb.h"
+#include "bsp_io.h"
+#include "bsp_timer.h"
+#include "bsp_timer_cb.h"
 /*APP include*/
 #include "analog_calculate.h"
 

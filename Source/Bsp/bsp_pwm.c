@@ -4,7 +4,7 @@
 #include <stdio.h>
 
 #define MAIN_FREQUENCY	    (108000000) 	    //主频 Ft 108M
-#define PWM_FREQUENCY 		20000 		    	//载频  Fpwm 控制mos管的频率 20K
+#define PWM_FREQUENCY 		20000 		    		//载频  Fpwm 控制mos管的频率 20K
 
 pwm_irq_cb_t pwm_irq_cb = {NULL, NULL};
 

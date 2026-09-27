@@ -132,3 +132,35 @@ void ADC_IRQHandler(void)
 {
 	adc_irq_cb.adc_cb(adc_irq_cb.formal_param);
 }
+
+/* EXTI1 IRQ */
+void EXTI1_IRQHandler(void)
+{
+	hall_irq_cb.hall_u_cb(hall_irq_cb.formal_param);//HALL U相的中断函数
+}
+
+/* EXTI2 IRQ */
+void EXTI2_IRQHandler(void)
+{
+	hall_irq_cb.hall_v_cb(hall_irq_cb.formal_param);//HALL V相的中断函数
+}
+
+/*EXTI3 IRQ */
+void EXTI3_IRQHandler(void)
+{
+	hall_irq_cb.hall_w_cb(hall_irq_cb.formal_param);//HALL W相的中断函数
+}
+
+/* TIM8 up Irq */
+void TIM8_UP_IRQHandler(void)
+{
+	timer8_irq_cb.timer_cb();
+}
+
+/* Break Irq */
+volatile uint32_t BRK_CNT = 0;
+void TIM1_BRK_IRQHandler(void)
+{
+	pwm_irq_cb.pwm_bk_cb();
+	BRK_CNT++;
+}

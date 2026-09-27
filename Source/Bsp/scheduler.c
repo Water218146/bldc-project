@@ -13,7 +13,16 @@ static task_t scheduler_task[] = {
     {rs485_uart_task, 5, 0}, // rs485_uart
 		{key_task , 10 ,0},
 		{led_task , 1	 ,0},
-		{adc_calculate_task,50,0},
+		{adc_calculate_task,10,0},
+//		{hall_sensor_test,50,0},
+		{motor_execute_task,1,0},
+		
+
+		
+#if 0
+		//电机开环测试
+		{motor_open_loop_task,5,0},		
+#endif
 };
 
 static uint8_t task_num; // 全局变量，用于存储任务数量

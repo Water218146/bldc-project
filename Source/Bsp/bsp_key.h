@@ -13,6 +13,15 @@ typedef enum
 	KEY_MAX
 }key_num_e;
 
+typedef struct
+{
+	uint8_t down_flag;
+	uint32_t down_cnt;
+}key_down_prama_t;
+
+extern key_down_prama_t key_st_sp_prama;
+extern key_down_prama_t key_cw_ccw_prama;
+
 void key_task(void);
 void bsp_key_init(void);
 #endif

@@ -1,0 +1,191 @@
+#include "motor_execute.h"
+
+/**
+  ******************************************************************************
+  * @file    motor_execute.c
+  * @author  chengbb
+  * @version V1.0
+  * @date    2026-09-22
+  * @brief   电机执行
+  ******************************************************************************/
+
+motor_execute_state_machine_e motor_execute_state_machine = EXECUTE_IDLE;
+
+static uint8_t dir_change_flag = 0;				//电机换向标志
+static uint8_t dir_change_status = 0;			//指示电机换向时的状态
+static uint16_t target_pwm_duty = 0;			//目标转速pwm 由电位器控制
+static uint8_t motor_direction = 0;				//电机方向
+
+#define CHECK_INTERVAL_TIME			(100)       //间隔100ms检测
+#define OVER_VOLTAGE_MAX_CNT		(5)       	//过压次数最大阈值
+#define UNDER_VOLTAGE_MAX_CNT		(5)       	//欠压次数最大阈值
+#define OVER_TEMPERATURE_MAX_CNT	(5)       	//过温次数最大阈值
+
+/**
+  ******************************************************************************
+  * @brief  电机使用pwm调速 进行开环调速
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void motor_open_speed(void)
+{
+	static uint32_t motor_speed_last_time = 0;
+	static uint16_t adc_speed = 0;
+	/* 电机方向没发生变化 输出pwm由电位器计算 */
+	if(dir_change_flag==0)
+	{
+		#if 0	//不适用滤波算法
+			target_pwm_duty = ((float)adc_digital_val.speed / 4095.0f) * MAX_PWM_DUTY;	.
+		#else //使用滤波算法
+			adc_speed = LPF_Calc(adc_digital_val.speed,adc_speed);
+			target_pwm_duty = ((float)adc_speed / 4095.0f) * MAX_PWM_DUTY;
+		#endif
+	}
+	if(target_pwm_duty < MOTOR_SENSORLESS_MODE_MIN_DUTY)
+	{
+		target_pwm_duty = MOTOR_SENSORLESS_MODE_MIN_DUTY;
+	}
+	/* 2ms调整一次转速 */
+	if(n_tick - motor_speed_last_time >= 1)
+	{
+		motor_speed_last_time = n_tick;
+		if(motor_ctrl_prama.pwm_duty < target_pwm_duty)//当期pwm小于目标pwm
+		{
+			motor_ctrl_prama.pwm_duty++;
+		}
+		if(motor_ctrl_prama.pwm_duty > target_pwm_duty)//当前pwm大于目标pwm
+		{
+			motor_ctrl_prama.pwm_duty--;
+		}
+	}
+}
+/**
+  ******************************************************************************
+  * @brief  电机运行任务
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void motor_execute_task(void)
+{
+	/* 电机启停按键按下 */
+	if(key_st_sp_prama.down_flag == 1)
+	{
+		key_st_sp_prama.down_flag = !key_st_sp_prama.down_flag;//消费这次按下的标志
+		key_st_sp_prama.down_cnt++;
+		if((key_st_sp_prama.down_cnt % 2) != 0)			
+		{
+			motor_ctrl_prama.motor_sta = MOTOR_START;//电机运行
+		}
+		else
+		{
+			motor_ctrl_prama.motor_sta = MOTOR_STOP;//电机停止
+		}
+	}
+	
+	/* 电机换向按键按下 */
+	if(key_cw_ccw_prama.down_flag == 1)
+	{
+		key_cw_ccw_prama.down_flag = !key_cw_ccw_prama.down_flag;
+		key_cw_ccw_prama.down_cnt++;
+		if((key_cw_ccw_prama.down_cnt%2) != 0)
+		{
+			motor_direction = MOTOR_DIRECTION_CW;//电机顺时针旋转
+			dir_change_flag = 1;
+		}
+		else
+		{
+			motor_direction = MOTOR_DIRECTION_CCW; //电机逆时针旋转
+			dir_change_flag = 1;
+		}
+	}
+	
+	//电机进行了一次换向
+	if(dir_change_flag)
+	{
+		/* 电机从运行过程中接收到换向指令 先让电机缓慢停下来 然后再换向 */
+		if(motor_ctrl_prama.motor_sta == MOTOR_START)
+		{
+			target_pwm_duty = MOTOR_START_MIN_DUTY;//目标占空比设置为最小占空比
+			switch(dir_change_status)
+			{
+				case 0:
+					/* 等待电机占空比减到的合适的值后停止 */
+					if(motor_ctrl_prama.pwm_duty < target_pwm_duty + 5)
+					{
+						motor_ctrl_prama.motor_sta = MOTOR_STOP;		//电机状态切换为停止
+						dir_change_status = 1;
+					}
+				break;
+				case 1:
+					
+				break;
+			}
+		}
+		/* 电机在停止状态下 分为：运行到停止 和 始终是停止两种状态 */
+		else
+		{
+			if(dir_change_status == 1)//是从运行状态切换切换过来的
+			{
+				dir_change_status = 0;
+				dir_change_flag = 0;
+				motor_ctrl_prama.motor_direction = motor_direction;
+				motor_ctrl_prama.motor_sta = MOTOR_START;	//电机自动启动
+				my_printf(DEBUG_COM,"#####motor_change_dir!\r\n");
+			}
+			else
+			{
+				dir_change_flag = 0;//清除换向标志位
+				motor_ctrl_prama.motor_direction = motor_direction;//静止时也能切换方向
+			}
+		}
+	}
+	/* ----------- 转速日志输出 ------------ */
+	#if 1
+	static uint32_t speed_printf_time = 0;
+	if(n_tick - speed_printf_time >= 500)
+	{
+		speed_printf_time = n_tick;//更新时间
+		my_printf(DEBUG_COM,"motor_speed:%d RPM\r\n",motor_ctrl_prama.calculate_speed);
+	}
+	#endif
+	/*===================电机运行状态机====================*/
+	switch(motor_execute_state_machine)
+	{
+		/* 电机处于空闲状态 */
+		case EXECUTE_IDLE:		
+			if(motor_ctrl_prama.motor_sta == MOTOR_START)
+			{
+				motor_execute_state_machine = EXECUTE_MOTOR_START;
+			}
+		break;
+		/* 电机处于启动状态 */
+		case EXECUTE_MOTOR_START:
+			motor_start(MOTOR_START_MIN_DUTY,motor_ctrl_prama.motor_direction);		//执行一次强拖换向 触发霍尔中断
+			if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)	//检测到了错误
+			{
+				motor_execute_state_machine = EXECUTE_IDLE;
+				key_st_sp_prama.down_cnt = 0;//按键清零 让再次按下启动按键时 能直接进行启动
+				my_printf(DEBUG_COM,"motor_start:flaut!!\r\n");
+			}
+			else
+			{
+				motor_execute_state_machine = EXECUTE_MOTOR_EXECUTE;
+			}
+		break;
+		/* 电机处于运行状态 */
+		case EXECUTE_MOTOR_EXECUTE:
+			motor_open_speed();					//电机速度调整 开环
+			if(motor_ctrl_prama.motor_sta == MOTOR_STOP)
+			{
+				motor_stop();
+				/* 状态切换为STOP状态 */
+				motor_execute_state_machine = EXECUTE_MOTOR_STOP;
+			} 
+		break;
+		/* 电机处于停止状态 */
+		case EXECUTE_MOTOR_STOP:
+			motor_execute_state_machine = EXECUTE_IDLE;			//直接切换到空闲状态
+		break;
+	}
+	
+}
