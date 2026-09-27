@@ -155,6 +155,7 @@ void motor_error_check(void)
 			{
 				motor_stop();		//电机停止
 				key_st_sp_prama.down_cnt = 0;//保证下次能够直接按下按键启动
+				motor_ctrl_prama.error_sign = MOTOR_OPERATION_FAULT;//重新标记为错误状态防止错误状态被改变
 			}
 			/* 打印具体错误信息 */
 			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_VOLTAGE_ERROR))
