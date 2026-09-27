@@ -21,6 +21,67 @@ static uint8_t motor_direction = 0;				//电机方向
 #define UNDER_VOLTAGE_MAX_CNT		(5)       	//欠压次数最大阈值
 #define OVER_TEMPERATURE_MAX_CNT	(5)       	//过温次数最大阈值
 
+
+/**
+  ******************************************************************************
+  * @brief  电机过压欠压检测
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+ static void motor_over_vlotage_under_voltage_check(void)
+ {
+	static uint32_t check_time = 0;
+	static uint8_t under_voltage_cnt = 0;
+	static uint8_t over_voltage_cnt = 0;
+
+	if(n_tick - check_time >= CHECK_INTERVAL_TIME)//100ms检查一次
+	{
+		check_time = n_tick;
+
+		/* 检测到过压 */
+		if(adc_voltage_val.v_bus > OVER_VOLTAGE_THRESHOLD_VALUE)
+		{
+			over_voltage_cnt++;//过压次数增加
+			if(over_voltage_cnt > OVER_VOLTAGE_MAX_CNT)//过压错误次数大于阈值
+			{
+				over_voltage_cnt = OVER_VOLTAGE_MAX_CNT;
+				SET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_VOLTAGE_ERROR);//标记为过压错误
+			}
+		}
+		/* 检测到欠压 */
+		else if(adc_voltage_val.v_bus < UNDER_VOLTAGE_THRESHOLD_VALUE)
+		{
+			under_voltage_cnt++;//欠压次数增加
+			if(under_voltage_cnt > UNDER_VOLTAGE_MAX_CNT)//欠压错误次数大于阈值
+			{
+				under_voltage_cnt = UNDER_VOLTAGE_MAX_CNT;
+				SET_ERROR_TYPE(motor_ctrl_prama.error_type,UNDER_VOLTAGE_ERROR);//标记为欠压错误
+			}
+		}
+		else//为检测到错误
+		{
+			/* 过压自愈机制 */
+			if(over_voltage_cnt > 0)
+			{
+				over_voltage_cnt--;
+			}
+			else//没有过压错误了 清除过压错误标记
+			{
+				CLEAR_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_VOLTAGE_ERROR);
+			}
+
+			/* 欠压自愈机制 */
+			if(under_voltage_cnt > 0)
+			{
+				under_voltage_cnt--;
+			}
+			else//清除欠压错误
+			{
+				CLEAR_ERROR_TYPE(motor_ctrl_prama.error_type,UNDER_VOLTAGE_ERROR);
+			}
+		}
+	}
+ }
 /**
   ******************************************************************************
   * @brief  电机使用pwm调速 进行开环调速
