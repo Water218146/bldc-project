@@ -29,7 +29,7 @@
 */
 #define LPF_Calc(Xin,Yout)							((Yout>>1)+(Yout>>2)+(Xin>>2))			//Xn:in		Yn:out
 
-#define OVER_VOLTAGE_THRESHOLD_VALUE		(36.0f)															//母线电压过压阈值
+#define OVER_VOLTAGE_THRESHOLD_VALUE		(28.0f)															//母线电压过压阈值
 #define UNDER_VOLTAGE_THRESHOLD_VALUE		(20.0f)															//母线电压欠压阈值
 #define OVER_TEMPERTURE_THRESHOLD_VALUE	(40.0f)															//过温阈值 >=70
 
@@ -166,6 +166,7 @@ typedef struct{
 	uint8_t motor_direction;	//电机运行方向
 	uint8_t error_cnt;				//异常计数
 	uint8_t error_sign;				//异常标记
+	uint8_t error_type;				//异常类型
 	uint8_t motor_sta;				//电机运行状态
 	uint32_t calculate_speed;	//计算出的电机转速
 	uint32_t motor_phase_time;//电机换相时间记录
