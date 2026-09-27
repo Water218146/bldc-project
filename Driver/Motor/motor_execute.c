@@ -97,6 +97,7 @@ static void motor_over_temperature_check(void)
 	/* 100ms进行一次温度检测 */
 	if(n_tick - check_out >= CHECK_INTERVAL_TIME)
 	{
+		check_out = n_tick;		//更新时间戳
 		/* 温度大于阈值 */
 		if(adc_voltage_val.temperature > OVER_TEMPERTURE_THRESHOLD_VALUE)
 		{
