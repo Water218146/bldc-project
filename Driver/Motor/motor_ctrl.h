@@ -89,7 +89,7 @@
 
 #define MOTOR_OPERATION_IDLE							0				//电机空闲状态
 #define MOTOR_OPERATION_FAULT							1				//电机运行错误
-#define MOTOR_OPERATION_NORMAL						2				//电机运行正常
+#define MOTOR_OPERATION_NORMAL						2					//电机运行正常
 
 #define MOTOR_STOP									0									//电机运行状态：停止						
 #define MOTOR_START									1									//电机运行状态：启动

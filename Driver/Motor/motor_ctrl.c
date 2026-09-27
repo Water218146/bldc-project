@@ -16,6 +16,11 @@ void motor_ctrl_init()
 	motor_ctrl_prama.pwm_duty = 0;	//	pwm清空
 	motor_ctrl_prama.error_cnt = 0;	//错误计数清零
 	motor_ctrl_prama.error_sign = MOTOR_OPERATION_IDLE;//电机错误标志置位空闲
+	motor_ctrl_prama.error_type = 0;	//上电无错误
+	motor_ctrl_prama.motor_sta = MOTOR_STOP;
+	motor_ctrl_prama.motor_direction = 0;
+	motor_ctrl_prama.calculate_speed = 0;
+	motor_ctrl_prama.motor_phase_time = 0;
 }
 
 /* 电机启动函数 返回1表示启动成功*/
