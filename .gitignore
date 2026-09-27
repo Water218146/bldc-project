@@ -1,0 +1,25 @@
+# Keil 编译输出
+Project/*.o
+Project/*.d
+Project/*.crf
+Project/*.axf
+Project/*.map
+Project/*.lnp
+Project/*.htm
+Project/*.dep
+Project/*.iex
+
+# Keil 用户配置和调试日志
+Project/*.uvguix.*
+Project/*.uvoptx
+Project/JLinkLog.txt
+
+# 临时文件
+*.bak
+*.tmp
+*.log
+
+# VS Code 本地配置
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
