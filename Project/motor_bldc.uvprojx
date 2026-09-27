@@ -340,7 +340,7 @@
               <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
-              <IncludePath>..\Libraries\Lib\n32g43x_std_periph_driver\inc;..\Libraries\Lib\n32g43x_std_periph_driver\src;..\Libraries\Stratup;..\Libraries\SysConfig;..\Libraries\SysCore;..\Source\APP;..\Source\Bsp;..\Driver\Motor;..\Driver\AD56xx</IncludePath>
+              <IncludePath>..\Libraries\Lib\n32g43x_std_periph_driver\inc;..\Libraries\Lib\n32g43x_std_periph_driver\src;..\Libraries\Stratup;..\Libraries\SysConfig;..\Libraries\SysCore;..\Source\APP;..\Source\Bsp;..\Driver\Motor;..\Driver\AD56xx;..\Driver\PID</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -633,6 +633,16 @@
               <FileName>motor_execute.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Driver\Motor\motor_execute.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>PID</GroupName>
+          <Files>
+            <File>
+              <FileName>pid.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Driver\PID\pid.c</FilePath>
             </File>
           </Files>
         </Group>

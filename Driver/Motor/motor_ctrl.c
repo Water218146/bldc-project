@@ -32,7 +32,7 @@ int motor_start(uint16_t start_pwm_duty,uint8_t motor_dir)
 
 #endif	
 	/* 启动前进行系统检查 */
-	if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)
+	if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT || motor_ctrl_prama.error_type!=0)//增加错误判定条件 
 	{
 		motor_stop();//安全起见进行停机处理
 		my_printf(DEBUG_COM,"motor_hall_sensor_mode:statr fault\r\n");
