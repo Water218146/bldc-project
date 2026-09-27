@@ -11,7 +11,8 @@ typedef enum
 	EXECUTE_MOTOR_STOP,						//电机停止
 }motor_execute_state_machine_e;
 
-void motor_speed(void);
-void motor_open_speed(void);
-void motor_execute_task(void);
+
+void motor_open_speed(void);			//开环速度计算函数
+void motor_execute_task(void);			//电机状态机任务
+void motor_error_check(void);			//电机错误检测函数
 #endif

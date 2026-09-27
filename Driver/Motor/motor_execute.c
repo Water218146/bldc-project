@@ -124,6 +124,67 @@ static void motor_over_temperature_check(void)
 	}
 }
 
+/**
+  ******************************************************************************
+  * @brief  电机错误检测
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void motor_error_check(void)
+{
+	static uint16_t error_sign_last = 0xffff;
+	/* 调用电压错误检测函数 */
+	motor_over_vlotage_under_voltage_check();
+	/* 调用过温错误检测珊瑚 */
+	motor_over_temperature_check();
+
+	/* 错误状态发上变化时才进入判断 防止进行重复无效的判断 */
+	if(motor_ctrl_prama.error_type != error_sign_last)
+	{
+		error_sign_last = motor_ctrl_prama.error_type;//记录历史错误状态
+
+		/* 有错误 */
+		if(motor_ctrl_prama.error_type != 0)		
+		{
+			motor_ctrl_prama.error_sign = MOTOR_OPERATION_FAULT;//标记为错误状态
+
+			if(motor_ctrl_prama.motor_sta == MOTOR_START)
+			{
+				motor_stop();		//电机停止
+				key_st_sp_prama.down_cnt = 0;//保证下次能够直接按下按键启动
+			}
+			/* 打印具体错误信息 */
+			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_VOLTAGE_ERROR))
+			{	
+				my_printf(DEBUG_COM,"check over voltage error\r\n");//打印过压错误
+			}
+			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,UNDER_VOLTAGE_ERROR))
+			{	
+				my_printf(DEBUG_COM,"check under voltage error\r\n");//打印低压错误
+			}
+			if(GET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_TEMPERATURE_ERROR))
+			{	
+				my_printf(DEBUG_COM,"check over temperature error\r\n");//打印过温错误
+			}			
+		}
+		/* 状态从有错误变成了无错误 或 初级执行这个函数*/
+		else
+		{
+			/*如果电机处于运行状态*/
+			if(motor_ctrl_prama.motor_sta == MOTOR_START)
+			{
+				motor_ctrl_prama.error_sign = MOTOR_OPERATION_NORMAL;   //异常标记设置为normal
+			}
+			/*如果电机处于停机状态*/
+			else
+			{
+				motor_ctrl_prama.error_sign = MOTOR_OPERATION_IDLE;		//异常标记设置为idle
+			}
+			my_printf(DEBUG_COM,"check normal\r\n");
+		}
+
+	}
+}
 
 /**
   ******************************************************************************
@@ -252,6 +313,8 @@ void motor_execute_task(void)
 		my_printf(DEBUG_COM,"motor_speed:%d RPM\r\n",motor_ctrl_prama.calculate_speed);
 	}
 	#endif
+	/*===================执行错误检测函数==================*/
+	motor_error_check();	
 	/*===================电机运行状态机====================*/
 	switch(motor_execute_state_machine)
 	{
