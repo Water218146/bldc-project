@@ -42,6 +42,7 @@ static uint8_t motor_direction = 0;				//电机方向
 		if(adc_voltage_val.v_bus > OVER_VOLTAGE_THRESHOLD_VALUE)
 		{
 			over_voltage_cnt++;//过压次数增加
+			under_voltage_cnt = 0;//欠压次数清零
 			if(over_voltage_cnt > OVER_VOLTAGE_MAX_CNT)//过压错误次数大于阈值
 			{
 				over_voltage_cnt = OVER_VOLTAGE_MAX_CNT;
@@ -52,6 +53,7 @@ static uint8_t motor_direction = 0;				//电机方向
 		else if(adc_voltage_val.v_bus < UNDER_VOLTAGE_THRESHOLD_VALUE)
 		{
 			under_voltage_cnt++;//欠压次数增加
+			over_voltage_cnt = 0;	//过压次数清零
 			if(under_voltage_cnt > UNDER_VOLTAGE_MAX_CNT)//欠压错误次数大于阈值
 			{
 				under_voltage_cnt = UNDER_VOLTAGE_MAX_CNT;
