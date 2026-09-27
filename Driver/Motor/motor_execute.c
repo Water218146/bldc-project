@@ -185,7 +185,6 @@ void motor_error_check(void)
 			}
 			my_printf(DEBUG_COM,"check normal\r\n");
 		}
-
 	}
 }
 
