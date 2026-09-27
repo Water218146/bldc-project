@@ -201,7 +201,7 @@ void motor_stop(void)
 	
 //	motor_sensorless_init();	
 #endif
-	my_printf(DEBUG_COM,"motor status:Motor Stop\r\n");
+	// my_printf(DEBUG_COM,"motor status:Motor Stop\r\n");
 	motor_ctrl_prama.calculate_speed = 0;				//停止时速度清零
 
 }
