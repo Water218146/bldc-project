@@ -82,6 +82,49 @@ static uint8_t motor_direction = 0;				//电机方向
 		}
 	}
  }
+
+/**
+  ******************************************************************************
+  * @brief  电机过温检测
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+static void motor_over_temperature_check(void)
+{
+	static uint32_t check_out = 0;
+	static uint8_t over_temperature_cnt = 0;
+
+	/* 100ms进行一次温度检测 */
+	if(n_tick - check_out >= CHECK_INTERVAL_TIME)
+	{
+		/* 温度大于阈值 */
+		if(adc_voltage_val.temperature > OVER_TEMPERTURE_THRESHOLD_VALUE)
+		{
+			over_temperature_cnt++;
+			/* 过温次数大于阈值（5次）*/
+			if(over_temperature_cnt > OVER_TEMPERATURE_MAX_CNT)
+			{
+				over_temperature_cnt = OVER_TEMPERATURE_MAX_CNT;
+				SET_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_TEMPERATURE_ERROR);//标记为过温错误
+			}
+		}
+		/* 温度小于阈值 */
+		else
+		{
+			/* 温度自愈机制 */
+			if(over_temperature_cnt>0)
+			{
+				over_temperature_cnt--;
+			}
+			else//过温 次数为0之后 清除过温标志
+			{
+				CLEAR_ERROR_TYPE(motor_ctrl_prama.error_type,OVER_TEMPERATURE_ERROR);
+			}
+		}
+	}
+}
+
+
 /**
   ******************************************************************************
   * @brief  电机使用pwm调速 进行开环调速
