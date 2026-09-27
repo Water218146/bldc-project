@@ -30,6 +30,7 @@
 
 /* driver */
 #include "motor_define.h"
+#include "pid.h"
 
 #endif
 
