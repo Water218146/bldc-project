@@ -336,7 +336,7 @@ void motor_execute_task(void)
 			// if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)	//检测到了错误
 			if(ret == 0)//启动错误
 			{
-				motor_execute_state_machine = EXECUTE_IDLE;
+				motor_execute_state_machine = EXECUTE_MOTOR_STOP;
 				key_st_sp_prama.down_cnt = 0;//按键清零 让再次按下启动按键时 能直接进行启动
 				my_printf(DEBUG_COM,"motor_start:flaut!!\r\n");
 			}

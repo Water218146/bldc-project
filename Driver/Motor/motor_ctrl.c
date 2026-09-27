@@ -208,5 +208,5 @@ void motor_stop(void)
 #endif
 	// my_printf(DEBUG_COM,"motor status:Motor Stop\r\n");
 	motor_ctrl_prama.calculate_speed = 0;				//停止时速度清零
-
+	motor_ctrl_prama.motor_sta = MOTOR_STOP;			//停止时将切换到停止状态
 }
