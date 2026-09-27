@@ -23,3 +23,6 @@ Project/JLinkLog.txt
 .vscode/*
 !.vscode/extensions.json
 !.vscode/settings.json
+
+#Document 图片文档
+Document/interactive_review/*
