@@ -8,6 +8,7 @@
   ******************************************************************************/
 void bsp_pwm_brake_irq_cb(void)
 {
+  /* 检测到母线电流过流时会触发该中断 */
 	if(TIM_GetIntStatus(TIM1, TIM_INT_BREAK) != RESET)
 	{
 		TIM_ClrIntPendingBit(TIM1, TIM_INT_BREAK);
