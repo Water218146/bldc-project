@@ -175,6 +175,6 @@ typedef struct{
 extern motor_ctrl_prama_t motor_ctrl_prama;
 
 void motor_ctrl_init(void);
-void motor_start(uint16_t start_pwm_duty,uint8_t motor_dir);
+int motor_start(uint16_t start_pwm_duty,uint8_t motor_dir);
 void motor_stop(void);
 #endif 

@@ -18,14 +18,21 @@ void motor_ctrl_init()
 	motor_ctrl_prama.error_sign = MOTOR_OPERATION_IDLE;//电机错误标志置位空闲
 }
 
-/* 电机启动函数 */
-void motor_start(uint16_t start_pwm_duty,uint8_t motor_dir)
+/* 电机启动函数 返回1表示启动成功*/
+int motor_start(uint16_t start_pwm_duty,uint8_t motor_dir)
 {
 #ifdef MOTOR_HALL_MODE			//电机霍尔模式执行
 	int i =0;
-#else
+#else							//电机非霍尔模式运行
 
 #endif	
+	/* 启动前进行系统检查 */
+	if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)
+	{
+		motor_stop();//安全起见进行停机处理
+		my_printf(DEBUG_COM,"motor_hall_sensor_mode:statr fault\r\n");
+		return 0;
+	}
 	
 	motor_ctrl_prama.pwm_duty = 0;		//初始占空比设置为0
 	
@@ -62,10 +69,12 @@ void motor_start(uint16_t start_pwm_duty,uint8_t motor_dir)
 	/* 检测到错误数大于0 */
 	if(motor_ctrl_prama.error_cnt>0)
 	{
+		motor_ctrl_prama.error_cnt = 0;	//错误计数清零
 		motor_ctrl_prama.error_sign = MOTOR_OPERATION_FAULT; 
 		motor_ctrl_prama.motor_sta = MOTOR_STOP;
+		motor_stop();					//电机停机
 		my_printf(DEBUG_COM,"hall_sensor_fault!!\r\n");
-		return;
+		return 0;
 	}
 	else
 	{
@@ -156,6 +165,7 @@ void motor_start(uint16_t start_pwm_duty,uint8_t motor_dir)
 	{
 		my_printf(DEBUG_COM,"motor status:Motor Start,Motor Dir:CW\r\n");		
 	}
+	return 1;//整个启动函数执行完毕 返回1
 }
 
 /**
