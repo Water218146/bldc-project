@@ -4,6 +4,6 @@
     "C_Cpp.default.configurationProvider": "",
     "C_Cpp.intelliSenseEngine": "default",
     "C_Cpp.default.intelliSenseMode": "windows-gcc-arm",
-    "C_Cpp.default.compilerPath": "D:/Keil5/ARM/ARMCC/bin/armcc.exe",
+    "C_Cpp.default.compilerPath": "E:/Softwore/MSYS2/ucrt64/bin/gcc.exe",
     "git.ignoreLimitWarning": true
 }
