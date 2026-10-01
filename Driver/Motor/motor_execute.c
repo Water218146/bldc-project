@@ -3,7 +3,7 @@
 /**
   ******************************************************************************
   * @file    motor_execute.c
-  * @author  chengbb
+  * @author  chengbb//
   * @version V1.0
   * @date    2026-09-22
   * @brief   电机执行
