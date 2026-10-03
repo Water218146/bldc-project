@@ -41,7 +41,7 @@ void motor_get_hall_value(void)
 	/* 上升下降沿都找到了 */
 	if(hall_value.level_sign == 2)
 	{
-	#if 1			 /* --------开环速度计算---------- */
+	#if 0			 /* --------开环速度计算---------- */
 		static uint64_t time = 0;
 		static uint64_t timef = 0;
 		

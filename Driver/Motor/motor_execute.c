@@ -10,6 +10,7 @@
   ******************************************************************************/
 
 motor_execute_state_machine_e motor_execute_state_machine = EXECUTE_IDLE;
+pid_ctrl_tt motor_speed_pid_ctrl;
 
 static uint8_t dir_change_flag = 0;				//电机换向标志
 static uint8_t dir_change_status = 0;			//指示电机换向时的状态
@@ -202,7 +203,7 @@ void motor_open_speed(void)
 	/* 电机方向没发生变化 输出pwm由电位器计算 */
 	if(dir_change_flag==0)
 	{
-		#if 0	//不适用滤波算法
+		#if 0	//不使用滤波算法
 			target_pwm_duty = ((float)adc_digital_val.speed / 4095.0f) * MAX_PWM_DUTY;	.
 		#else //使用滤波算法
 			adc_speed = LPF_Calc(adc_digital_val.speed,adc_speed);
@@ -213,7 +214,7 @@ void motor_open_speed(void)
 	{
 		target_pwm_duty = MOTOR_SENSORLESS_MODE_MIN_DUTY;
 	}
-	/* 2ms调整一次转速 */
+	/* 1ms调整一次转速 */
 	if(n_tick - motor_speed_last_time >= 1)
 	{
 		motor_speed_last_time = n_tick;
@@ -227,6 +228,124 @@ void motor_open_speed(void)
 		}
 	}
 }
+
+/**
+  ******************************************************************************
+  * @brief 速度pid初始化
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+ void motor_pid_init(void)
+ {
+	memset(&motor_speed_pid_ctrl,0,sizeof(struct pid_ctrl_t));	//初始化PID控制结构体
+#if POSITION_PID_CTRL
+	//PID基础参数
+	motor_speed_pid_ctrl.kp = PID_KP_GAIN;
+	motor_speed_pid_ctrl.ki = PID_KI_GAIN;
+	motor_speed_pid_ctrl.kd = PID_KD_GAIN;
+	/* 初始化积分分离参数 */
+	motor_speed_pid_ctrl.i_separate_p_threshold_value = PID_SEP_P_THRESHOLD_VALUE;	//积分分离正阈值
+	motor_speed_pid_ctrl.i_separate_n_threshold_value = PID_SEP_N_THRESHOLD_VALUE;	//积分分离负阈值
+	motor_speed_pid_ctrl.i_windup_p_threshold_value = PID_WINDUP_P_THRESHOLD_VALUE;	//积分限幅正阈值
+	motor_speed_pid_ctrl.i_windup_n_threshold_value = PID_WINDUP_N_THRESHOLD_VALUE; //积分限幅负阈值
+	
+	motor_speed_pid_ctrl.uk_max_value = PID_UK_MAX_VALUE;	//输出最大值
+	motor_speed_pid_ctrl.uk_min_value = PID_UK_MIN_VALUE;	//输出最小值
+	
+	motor_speed_pid_ctrl.error_p_band = PID_ERROR_P_BAND;	//正误差带
+	motor_speed_pid_ctrl.error_n_band = PID_ERROR_N_BAND;	//负误差带
+	motor_speed_pid_ctrl.pid_funtion = position_pid;		//pid执行对象：位置式pid
+#else
+	//PID基础参数
+	motor_speed_pid_ctrl.kp = PID_KP_GAIN;
+	motor_speed_pid_ctrl.ki = PID_KI_GAIN;
+	motor_speed_pid_ctrl.kd = PID_KD_GAIN;
+
+	//输出限幅值
+	motor_speed_pid_ctrl.uk_max_value = PID_UK_MAX_VALUE;
+	motor_speed_pid_ctrl.uk_min_value = PID_UK_MIN_VALUE;
+	
+	//指定pid算法
+	motor_speed_pid_ctrl.pid_funtion = incremental_pid;	//增量式PID
+#endif
+ }
+/**
+  ******************************************************************************
+  * @brief  电机pid算法速度环控制
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void motor_pid_speed(void)
+{
+	static uint32_t timeout = 0;			//pid控制周期超时值
+	static uint32_t adc_speed = 0;			//adc采集电位器数据原始值临时变量
+	static uint32_t target_speed_value = 0;		//目标速度临时变量
+	static uint32_t sampling_cycle = 0;		//pid控制采样周期
+//该版本暂时只写有感模式
+	uint8_t diff_val = 1;					//执行周期与采样周期的倍数
+
+	/* 电机方向没发生改变 */
+	if(dir_change_flag == 0)
+	{
+		/* 当前速度不为0 */
+		if(motor_ctrl_prama.calculate_speed != 0)
+		{
+			/* 进行采样周期的计算 
+			* 1min / 电机转速 = 电机 机械角度转了360° 所花的时间
+			* 除去极对数 可得 电角度 旋转360° 所花的时间 
+			* 电角度旋转360°所花的时间 就是采样周期 （霍尔传感器专属 霍尔传感器的采样时间 会根据电机实际转速而变化）
+			**/
+			sampling_cycle = M60_CONVERT_MS / motor_ctrl_prama.calculate_speed / MOTOR_PAIR_OF_POLES;
+		}
+		else	//	当前速度为0固定50ms采样
+		{
+			sampling_cycle = 50;
+		}
+		
+		/* 执行周期(sampling_cycle * diff_val) 每周期进行PiD控制*/
+		if((n_tick - timeout) >= (sampling_cycle * diff_val))
+		{
+			timeout = n_tick;
+			/* 目标速度 */
+			adc_speed = LPF_Calc(adc_digital_val.speed,adc_speed);		//adc采集电位器值进行滤波
+			target_speed_value = adc_speed / 4095.0f * MOTOR_MAX_SPEED;	//电位器值缩放为目标速度
+			motor_speed_pid_ctrl.target_value = LPF_Calc(target_speed_value,(uint32_t)motor_speed_pid_ctrl.target_value);//目标速度滤波
+
+			/* 实时速度 */
+			motor_speed_pid_ctrl.current_value = motor_ctrl_prama.calculate_speed;
+
+			/* 调用PID控制函数 */
+			motor_speed_pid_ctrl.pid_funtion(&motor_speed_pid_ctrl);	//经过pid控制算法后将速度误差转化为合理的PWM
+			/* 更新输出pwm值 */
+			motor_ctrl_prama.pwm_duty = motor_speed_pid_ctrl.uk_value;
+		}
+	}
+	/* 电机方向发生了改变 */
+	else
+	{
+		/*目标占空比最小值限幅*/
+		if(target_pwm_duty < MOTOR_START_MIN_DUTY)
+		{
+			target_pwm_duty = MOTOR_START_MIN_DUTY;
+		}
+		
+		/*间隔1ms进行一次pwm占空比调节*/
+		if(bsp_systick_get_tick() - timeout >= 1)
+		{
+			timeout = bsp_systick_get_tick();
+			if(target_pwm_duty > motor_ctrl_prama.pwm_duty)
+			{
+				motor_ctrl_prama.pwm_duty++;
+			}
+			else if(target_pwm_duty < motor_ctrl_prama.pwm_duty)
+			{
+				motor_ctrl_prama.pwm_duty--;
+			}
+		}
+	}
+	
+}
+
 /**
   ******************************************************************************
   * @brief  电机运行任务
@@ -332,6 +451,7 @@ void motor_execute_task(void)
 		case EXECUTE_MOTOR_START:
 		{
 			int ret = 0;
+			motor_pid_init();
 			// motor_start(MOTOR_START_MIN_DUTY,motor_ctrl_prama.motor_direction);		//执行一次强拖换向 触发霍尔中断
 			ret = motor_start(MOTOR_START_MIN_DUTY,motor_ctrl_prama.motor_direction);//执行一次强拖换向，且进行启动时的安全检测
 			// if(motor_ctrl_prama.error_sign == MOTOR_OPERATION_FAULT)	//检测到了错误
@@ -351,7 +471,8 @@ void motor_execute_task(void)
 
 		/* 电机处于运行状态 */
 		case EXECUTE_MOTOR_EXECUTE:
-			motor_open_speed();					//电机速度调整 开环
+			// motor_open_speed();					//电机速度调整 开环
+			motor_pid_speed();
 			if(motor_ctrl_prama.motor_sta == MOTOR_STOP)
 			{
 				motor_stop();
