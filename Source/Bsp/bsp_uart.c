@@ -314,6 +314,7 @@ void debug_uart_task(void)
 /* 主机串口 task */
 void host_computer_uart_task(void)
 {
+	float kp,ki,kd =0;
 	if (host_computer_com_index == 0)
 	{
 		return;
@@ -322,7 +323,39 @@ void host_computer_uart_task(void)
 	{
 		host_computer_com_tick = n_tick;//更新时间戳
 		//start
-		my_printf(HOST_COMPUTER_COM,"host_data:%s\r\n",host_computer_com_buffer);
+		// my_printf(HOST_COMPUTER_COM,"host_data:%s\r\n",host_computer_com_buffer);
+		if(host_computer_com_index < HOST_COM_BUF_SIZE)
+		{
+			host_computer_com_buffer[host_computer_com_index] = '\0';
+		}
+		if(sscanf((char *)host_computer_com_buffer,"kp=%f,ki=%f,kd=%f",&kp,&ki,&kd)==3)
+		{
+			motor_speed_pid_ctrl.kp = kp;
+			motor_speed_pid_ctrl.ki = ki;
+			motor_speed_pid_ctrl.kd = kd;
+		}
+		else if(strstr((char *)host_computer_com_buffer,"kp=")!=NULL)
+		{
+			if(sscanf((char *)host_computer_com_buffer,"kp=%f",&kp)==1)
+			{
+				motor_speed_pid_ctrl.kp = kp;
+			}
+		}
+		else if (strstr((char *)host_computer_com_buffer,"ki=")!=NULL)
+		{
+			if(sscanf((char *)host_computer_com_buffer,"ki=%f",&ki)==1)
+			{
+				motor_speed_pid_ctrl.ki = ki;
+			}
+		}
+		else if (strstr((char *)host_computer_com_buffer,"kd=")!=NULL)
+		{
+			if(sscanf((char *)host_computer_com_buffer,"kd=%f",&kd)==1)
+			{
+				motor_speed_pid_ctrl.kd = kd;
+			}
+		}
+	
 		//end
 		memset(host_computer_com_buffer, 0, sizeof(host_computer_com_buffer));
 		host_computer_com_index = 0;

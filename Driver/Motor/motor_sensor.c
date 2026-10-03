@@ -41,7 +41,7 @@ void motor_get_hall_value(void)
 	/* 上升下降沿都找到了 */
 	if(hall_value.level_sign == 2)
 	{
-	#if 1			 /* --------开环速度计算---------- */
+	#if 0			 /* --------开环速度计算---------- */
 		static uint64_t time = 0;
 		static uint64_t timef = 0;
 		
@@ -68,7 +68,7 @@ void motor_get_hall_value(void)
 		time = hall_value.falling_time - hall_value.rising_time;	//计算出高电平区间时间   180°电角度对应时间
 		time = time * 2; 											//计算出电周期(360°电角度)时间
 		time = time * MOTOR_PAIR_OF_POLES;							//根据极对数计算出旋转360°机械角度所需时间(也就是转子旋转一圈时间)
-		
+		time = time * 10;							//将10us单位转成1us单位
 		/* 时间计算双重滤波，稳定性和精度更高 */
 		timef = LPF_Calc(time, timef);   			//time:就是当前计算的值   timef:上次滤波后的值
 		timef1 = LPF_Calc(timef, timef1);   		//timef1:就是当前计算的值  timef:上次滤波后的值

@@ -7,6 +7,8 @@
 #include "string.h"
 #include "stdio.h"
 #include "math.h"
+
+
 /* bsp include */
 #include "bsp_systick.h"
 #include "scheduler.h"
@@ -30,6 +32,7 @@
 
 /* driver */
 #include "motor_define.h"
+#include "pid.h"
 
 #endif
 
