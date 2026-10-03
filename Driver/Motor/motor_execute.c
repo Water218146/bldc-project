@@ -427,14 +427,24 @@ void motor_execute_task(void)
 		}
 	}
 	/* ----------- 转速日志输出 ------------ */
-	#if 1
+	#if 0
 	static uint32_t speed_printf_time = 0;
 	if(n_tick - speed_printf_time >= 500)
 	{
 		speed_printf_time = n_tick;//更新时间
 		my_printf(DEBUG_COM,"motor_speed:%d RPM\r\n",motor_ctrl_prama.calculate_speed);
-	}
+	}ne 
 	#endif
+
+	/* ----------- VOFA+可视化参数观测与调试（使用HOST_COMPUTER_COM） ------------ */
+	static uint32_t pc_timeout = 0;
+	if(bsp_systick_get_tick() - pc_timeout >= 10)//10ms进行一次输出
+	{
+		pc_timeout = bsp_systick_get_tick();
+		my_printf(HOST_COMPUTER_COM,"motor_ctrl_prama:%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f,%.2f\r\n",motor_speed_pid_ctrl.target_value,motor_speed_pid_ctrl.current_value,motor_speed_pid_ctrl.p_value,motor_speed_pid_ctrl.i_value,motor_speed_pid_ctrl.kp,motor_speed_pid_ctrl.ki,motor_speed_pid_ctrl.kd,(float)motor_ctrl_prama.pwm_duty);
+	}
+
+	/*  */
 	/*===================执行错误检测函数==================*/
 	motor_error_check();	
 	/*===================电机运行状态机====================*/

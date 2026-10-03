@@ -65,8 +65,8 @@ void adc_calculate_task(void)
 	if(n_tick - timeout >= 500)
 	{
 		timeout = n_tick;
-		my_printf(DEBUG_COM,"V_BUS:%.2f,V_Bus_raw:%d\r\n",adc_voltage_val.v_bus,adc_digital_val.v_bus);
-		my_printf(DEBUG_COM,"temperature:%.2f,temperature_raw:%d\r\n",adc_voltage_val.temperature,adc_digital_val.temperature);	
+		// my_printf(DEBUG_COM,"V_BUS:%.2f,V_Bus_raw:%d\r\n",adc_voltage_val.v_bus,adc_digital_val.v_bus);
+		// my_printf(DEBUG_COM,"temperature:%.2f,temperature_raw:%d\r\n",adc_voltage_val.temperature,adc_digital_val.temperature);	
 	}
 	#endif
 }
