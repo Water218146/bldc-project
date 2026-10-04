@@ -192,6 +192,22 @@ void motor_error_check(void)
 
 /**
   ******************************************************************************
+  * @brief  电机堵转检测
+  * @param  None.
+  * @retval None.
+  ******************************************************************************/
+void motor_stall_check(void)
+{
+	if(n_tick - motor_ctrl_prama.motor_phase_time >= MOTOR_STALL_TIME_THRESHOULD)
+	{
+		motor_stop();//停机
+		/*跳转到EXECUTE_MOTOR_STOP状态*/
+		motor_execute_state_machine = EXECUTE_MOTOR_STOP;
+		key_st_sp_prama.down_cnt = 0;		//按键状态清除，为下一次按键启动电机做准备		
+	}
+}
+/**
+  ******************************************************************************
   * @brief  电机使用pwm调速 进行开环调速
   * @param  None.
   * @retval None.
@@ -489,6 +505,7 @@ void motor_execute_task(void)
 				/* 状态切换为STOP状态 */
 				motor_execute_state_machine = EXECUTE_MOTOR_STOP;
 			} 
+			motor_stall_check();					//运行状态下进行堵转检测
 		break;
 		/* 电机处于停止状态 */
 		case EXECUTE_MOTOR_STOP:
