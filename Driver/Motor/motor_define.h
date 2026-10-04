@@ -8,7 +8,7 @@
 #include "motor_phase_tab.h"		//电机换向表
 #include "motor_open_loop.h"		//开环转动
 #include "motor_ctrl.h"					//电机控制函数
-#include "motor_execute.h"
+#include "motor_execute.h"          //电机执行函数
 
 
 #endif
