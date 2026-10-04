@@ -156,6 +156,7 @@ int motor_start(uint16_t start_pwm_duty,uint8_t motor_dir)
 			break;
 		}
 	}
+	motor_ctrl_prama.motor_phase_time = bsp_systick_get_tick();		//启动后更新换相时间
 #else					//电机无传感器模式执行
 	motor_sensorless_init();
 	motor_ctrl_prama.motor_direction = motor_dir; //电机启动方向

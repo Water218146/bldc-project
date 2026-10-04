@@ -65,8 +65,8 @@
 #else						//增量式PID控制参数
 
 #ifdef	MOTOR_HALL_MODE	//霍尔传感器模式下
-#define PID_KP_GAIN									(0.4f)																	//PID控制比例项增益 0.005f    //ATK-BL57H95D20E 0.1f
-#define PID_KI_GAIN									(0.04f)																	//PID控制积分项增益 0.03f  	  //ATK-BL57H95D20E 0.02f 
+#define PID_KP_GAIN									(0.52f)																	//PID控制比例项增益 0.005f    //ATK-BL57H95D20E 0.1f
+#define PID_KI_GAIN									(0.053f)																	//PID控制积分项增益 0.03f  	  //ATK-BL57H95D20E 0.02f 
 #define PID_KD_GAIN									(0.0f)																	//PID控制微分项增益
 #define PID_UK_MAX_VALUE						((float)MAX_PWM_DUTY)										//输出最大值
 #define PID_UK_MIN_VALUE						((float)PWM_20_DUTY)										//输出最小值

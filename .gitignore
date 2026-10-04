@@ -26,3 +26,4 @@ Project/JLinkLog.txt
 
 #Document 图片文档
 Document/interactive_review/*
+tools/*.ps1

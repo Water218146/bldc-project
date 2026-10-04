@@ -93,7 +93,8 @@ void motor_sensor_mode_phase(void)
 	motor_get_hall_value();
 	hall_buf[h_index++] = hall_value.value;
 	h_index = h_index % 6;
-	
+	/* 获取换向时间 */
+	motor_ctrl_prama.motor_phase_time = bsp_systick_get_tick();
 	if((motor_ctrl_prama.error_sign == MOTOR_OPERATION_NORMAL) && (motor_ctrl_prama.motor_sta == MOTOR_START))//电机状态无错误且当前是运行状态
 	{
 		switch(motor_ctrl_prama.motor_direction)
